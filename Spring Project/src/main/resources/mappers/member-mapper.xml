@@ -21,12 +21,27 @@
 	</resultMap>
 	 
 	 
-	 
+	 <!-- 로그인 -->
 	<select id="loginMember" parameterType="Member" resultMap="memberResultSet">
 		SELECT * FROM MEMBER
 		WHERE MEMBER_ID = #{memberId}
-		AND MEMBER_PWD = #{memberPwd}
+	<!-- 	AND MEMBER_PWD = #{memberPwd} -->
 		AND MEMBER_STATUS='Y'
+	</select>
+	
+	<!-- 회원가입 -->
+	<insert id="signUp" parameterType="Member">
+		INSERT INTO MEMBER
+		VALUES(SEQ_UNO.NEXTVAL, #{memberId}, #{memberPwd},
+				#{memberName}, #{memberPhone}, #{memberEmail},
+				#{memberAddress}, #{memberInterest},
+				DEFAULT,DEFAULT,DEFAULT)
+	</insert>
+	
+	<!-- 아이디 중복 검사 -->
+	<select id="idDupCheck" parameterType="string" resultType="_int">
+		SELECT COUNT(*) FROM MEMBER
+		WHERE MEMBER_ID = #{memberId}
 	</select>
 
 </mapper>

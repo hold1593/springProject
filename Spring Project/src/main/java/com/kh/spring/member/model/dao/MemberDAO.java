@@ -23,6 +23,21 @@ public class MemberDAO {
 		
 		return sqlSession.selectOne("memberMapper.loginMember",member);
 	}
+
+	/** 회원가입용 DAO
+	 * @param signUpMember
+	 * @return result
+	 * @throws Exception
+	 */
+	public int signUp(Member signUpMember) throws Exception {
+		
+		return sqlSession.insert("memberMapper.signUp",signUpMember);
+	}
+
+	public int idDupCheck(String memberId) throws Exception{
+		
+		return sqlSession.selectOne("memberMapper.idDupCheck",memberId);
+	}
 	
 	
 

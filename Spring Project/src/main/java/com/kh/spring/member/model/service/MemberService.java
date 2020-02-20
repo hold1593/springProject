@@ -23,8 +23,21 @@ public interface MemberService {
 	public abstract Member loginMember(Member member) throws Exception;
 	// 인터페이스 메소드는 묵시적으로 public abstract
 	// 인터페이스의 필드는 묵시적으로 public static final
+
+	/** 회원가입용 Service
+	 * @param signUpMember
+	 * @return result 
+	 * @throws Exception
+	 */
+	public abstract int signUp(Member signUpMember) throws Exception;
+
+	/** 아이디 중복검사용 Service
+	 * @param memberId
+	 * @return result
+	 * @throws Exception
+	 */
+	public abstract int idDupCheck(String memberId) throws Exception;
 	
-	// public protected (default) private
 	
 	
 	
