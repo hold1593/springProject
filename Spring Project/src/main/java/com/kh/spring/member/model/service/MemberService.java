@@ -37,8 +37,40 @@ public interface MemberService {
 	 * @throws Exception
 	 */
 	public abstract int idDupCheck(String memberId) throws Exception;
+
+	/** 회원정보 조회용 Service
+	 * @param memberNo
+	 * @return loginMember
+	 * @throws Exception
+	 */
+	public abstract Member selectMember(int memberNo) throws Exception;
+
+	/** 회원 정보 수정용 Service
+	 * @param updateMember
+	 * @return loginMember
+	 * @throws Exception
+	 */
+	public abstract int updateMember(Member updateMember) throws Exception;
+
+	
+	/** 비밀번호 수정용 Service
+	 * @param member
+	 * @param newPwd1
+	 * @return result
+	 * @throws Exception
+	 */
+	public abstract int updatePwd(Member member, String newPwd1) throws Exception;
+
 	
 	
-	
+	/** 회원 탈퇴용 Service
+	 * @param loginMember
+	 * @return
+	 * @throws Exception
+	 */
+	public abstract int deleteMember(Member loginMember) throws Exception;
+
+
+
 	
 }

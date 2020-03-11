@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.bind.support.SessionStatus;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.kh.spring.member.model.service.MemberService;
 import com.kh.spring.member.model.vo.Member;
@@ -188,105 +189,240 @@ public class MemberController {
 
 	// 회원가입
 	@RequestMapping("signUp")
-	public String signUp(Member member, Model model,
-						String phone1, String phone2, String phone3,
-						String post, String address1, String address2,
-						@RequestParam(value="memberInterest",required = false) 
-						String[] interest) {
+	public String signUp(Member member, Model model, String phone1, String phone2, String phone3, String post,
+			String address1, String address2,
+			@RequestParam(value = "memberInterest", required = false) String[] interest) {
 		// @RequestParam 의 required : 해당 파라미터가 필수인지 여부를 지정
-		// 								기본값은 true
-		
+		// 기본값은 true
+
 		// 전화번호를 '-' 를 구분자로 하여 하나의 String 으로 합치기
-		String memberPhone = phone1 + "-" + phone2+ "-" +phone3;
-		
+		String memberPhone = phone1 + "-" + phone2 + "-" + phone3;
+
 		// 주소를 ',' 를 구분자로 하여 합침
 		String memberAddress = post + "," + address1 + "," + address2;
-		
+
 		// 관심분야를 ','를 구분자로 하여 합침
 		String memberInterest = null;
-		if(interest != null) {
+		if (interest != null) {
 			memberInterest = String.join(",", interest);
 		}
-		Member signUpMember 
-			= new Member(member.getMemberId(), member.getMemberPwd(), member.getMemberName(),
-						memberPhone, member.getMemberEmail(), 
-						memberAddress, memberInterest);
-		
-		
+		Member signUpMember = new Member(member.getMemberId(), member.getMemberPwd(), member.getMemberName(),
+				memberPhone, member.getMemberEmail(), memberAddress, memberInterest);
+
 		try {
 			int result = memberService.signUp(signUpMember);
 			String msg = null;
-			if(result > 0) msg = "가입성공";
-			else 			msg ="가입실패";
-			
-			model.addAttribute("msg",msg);
+			if (result > 0)
+				msg = "가입성공";
+			else
+				msg = "가입실패";
+
+			model.addAttribute("msg", msg);
 			return "redirect:/main";
-			
-		}catch(Exception e) {
+
+		} catch (Exception e) {
 			e.printStackTrace();
-			model.addAttribute("errorMsg","회원가입과정에서 오류발생");
+			model.addAttribute("errorMsg", "회원가입과정에서 오류발생");
 			return "common/errorPage";
 		}
-		
-		/* 
-		 * 1. 비밀번호를 평문으로 저장하면 어떻게 될까?
-		 * 		--> 범죄행위
+
+		/*
+		 * 1. 비밀번호를 평문으로 저장하면 어떻게 될까? --> 범죄행위
 		 * 
-		 * 2. SHA-512 해시함수를 이용한 암호화
-		 * 	-> 단방향 해시함수(복호화 불가능)== 암호의 해독이 안됌
-		 *  문제점 : 같은 비밀번호는 암호화 내용(다이제스트)이 똑같다.
-		 *  ex) 1234 -> abcd
-		 *  	1234 -> abcd
-		 *  -> 다이제스트가 많이 모이면 원래 비밀번호를 검색을 통해 찾아낼 가능성이 있음.
-		 *  	(해킹에 취약)
-		 *  
-		 *  - 일반적인 장비로도 1초에 56억개의 다이제스트를 만들 수 있음
-		 *  
-		 * 3. bcrypt 해시함수를 이용한 암호화(salting 기법)
-		 *	 - 입력된 문자열을 암호화 할 때
-		 * 		바로 해시함수에 대입하는 것이 아닌
-		 * 		임의의 값(salt)을 문자열에 추가하여 암호화를 진행
+		 * 2. SHA-512 해시함수를 이용한 암호화 -> 단방향 해시함수(복호화 불가능)== 암호의 해독이 안됌 문제점 : 같은 비밀번호는 암호화
+		 * 내용(다이제스트)이 똑같다. ex) 1234 -> abcd 1234 -> abcd -> 다이제스트가 많이 모이면 원래 비밀번호를 검색을
+		 * 통해 찾아낼 가능성이 있음. (해킹에 취약)
 		 * 
-		 * 	 Spring Security 모듈에서 지원해줌
-		 * 	-> pom.xml 라이브러리 추가
+		 * - 일반적인 장비로도 1초에 56억개의 다이제스트를 만들 수 있음
 		 * 
-		 * */
-		
-		
+		 * 3. bcrypt 해시함수를 이용한 암호화(salting 기법) - 입력된 문자열을 암호화 할 때 바로 해시함수에 대입하는 것이 아닌
+		 * 임의의 값(salt)을 문자열에 추가하여 암호화를 진행
+		 * 
+		 * Spring Security 모듈에서 지원해줌 -> pom.xml 라이브러리 추가
+		 * 
+		 */
+
 	}
 
-	
-	/*	@ResponseBody란?
+	/*
+	 * @ResponseBody란?
 	 * 
-	 * 메소드에서 리턴되는 값을 View를 통해 출력하는 것이 아닌
-	 * 리턴값을 HTTP에 Response Body에 담는 역할을 함
-	 *  --> jsp로 화면이 이동되는것이 아닌 
-	 *  	기존페이지로 데이터만 전달됨
+	 * 메소드에서 리턴되는 값을 View를 통해 출력하는 것이 아닌 리턴값을 HTTP에 Response Body에 담는 역할을 함 --> jsp로
+	 * 화면이 이동되는것이 아닌 기존페이지로 데이터만 전달됨
 	 * 
-	 * */
-	
+	 */
+
 	// 리턴종류
 	/*
-	 * String			==> view 이동
-	 * modelandview		==> view 이동
-	 * ajax data		==> data 이동
-	 * json				==> data 이동
-	 * XML				==> data 이동
-	 * */
+	 * String ==> view 이동 modelandview ==> view 이동 ajax data ==> data 이동 json ==>
+	 * data 이동 XML ==> data 이동
+	 */
 
-	
 	// 아이디 중복 검사
 	@ResponseBody
 	@RequestMapping("idDupCheck")
 	public String indDupCheck(String memberId, Model model) {
 		try {
-			return memberService.idDupCheck(memberId) == 0 ? true +"" : false+"";
-		}catch(Exception e) {
+			return memberService.idDupCheck(memberId) == 0 ? true + "" : false + "";
+		} catch (Exception e) {
 			e.printStackTrace();
-			model.addAttribute("errorMsg","아이디 중복체크 과정에서 오류 발생");
+			model.addAttribute("errorMsg", "아이디 중복체크 과정에서 오류 발생");
 			return "common/errorPage";
 		}
 	}
-	
+
+	// 회원정보(마이페이지) 조회
+	@RequestMapping("mypage")
+	public String myPage(Model model) {
+		// Session Scope에 있는 loginMember를 얻어옴.
+		Member loginMember = (Member) model.getAttribute("loginMember");
+		// Object 타입으로 반환이됨 -> Member로 강제형변환해야함
+		// @SessionAttributes의 매개변수로 작성된 key값을
+		// model.getAttribute("key값")을 이용하여
+		// Session scope에서 속성값을 얻어 올 수 있음.
+
+		try {
+			Member member = memberService.selectMember(loginMember.getMemberNo());
+			model.addAttribute("member", member);
+			return "member/mypage";
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			model.addAttribute("errorMsg", "회원 정보 조회 과정에서 오류 발생");
+			return "common/errorPage";
+
+		}
+	}
+
+	// 커맨드 객체 사용 조건
+	// 1) 기본 생성자
+	// 2) setter
+
+	/*
+	 * RedirectAttributes - 리타이렉트 시 데이터를 전달 할 수 있는 객체
+	 * 
+	 * addFlashAttribute() - 리타이렉트로 데이터 전달 시 쿼리스트링으로 전달되지 않게 현재 request에 세팅된
+	 * attribute를 잠시 Session scope로 올렸다가 페이지 이동 후 새로 생성된 request에 다시 추가해줌
+	 *
+	 */
+
+	// 회원 정보 수정
+	@RequestMapping("updateMember")
+	public String updateMember(Member member, Model model, RedirectAttributes rdAttr, String phone1, String phone2,
+			String phone3, String post, String address1, String address2,
+			@RequestParam(value = "memberInterest", required = false) String[] interest) {
+
+		Member loginMember = (Member) model.getAttribute("loginMember");
+		String memberPhone = phone1 + "-" + phone2 + "-" + phone2;
+
+		String memberEmail = member.getMemberEmail();
+		String memberAddress = post + "," + address1 + "," + address2;
+
+		String memberInterest = null;
+		if (interest != null) {
+			memberInterest = String.join(",", interest);
+		}
+
+		Member updateMember = new Member(loginMember.getMemberId(), loginMember.getMemberPwd(),
+				loginMember.getMemberName(), memberPhone, memberEmail, memberAddress, memberInterest);
+
+		System.out.println("업뎃멤버 : " + updateMember);
+
+		try {
+
+			int result = memberService.updateMember(updateMember);
+
+			String msg = null;
+
+			if (result > 0)
+				msg = "회원 정보가 수정되었습니다.";
+			else
+				msg = "회원 정보 수정에 실패하였습니다.";
+
+			// model.addAttribute("msg", msg);
+			rdAttr.addFlashAttribute("msg", msg);
+			model.addAttribute("member", updateMember);
+			return "redirect:mypage";
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			model.addAttribute("errorMsg", "회원 정보 수정 과정에서 오류 발생");
+			return "common/errorPage";
+		}
+	}
+
+	// 비밀번호 변경 페이지 이동
+	@RequestMapping("changePwd")
+	public String changePwd() {
+		return "member/changePwd";
+
+	}
+
+	@RequestMapping("updatePwd")
+	public String updatePwd(Member member, String newPwd1, Model model, RedirectAttributes rdAttr) {
+		// 현재 비밀번호에 입력한 값
+		// 새로운 비밀번호에 입력한 값
+		// 회원번호 또는 회원아이디
+
+		// Session에서 회원 번호를 얻어오기
+		int memberNo = ((Member) model.getAttribute("loginMember")).getMemberNo();
+
+		// 커맨드 객체 member를 재활용하여
+		// 회원번호와, 현재 비밀번호에 입력한 값을 한번에 저장
+		member.setMemberNo(memberNo);
+
+		try {
+			int result = memberService.updatePwd(member, newPwd1);
+			String msg = null;
+			if (result > 0)
+				msg = "비밀번호 수정 성공";
+			else if (result == 0)
+				msg = "비밀번호 변경 실패";
+			else
+				msg = "현재 비밀번호가 일치 하지 않습니다.";
+
+			rdAttr.addFlashAttribute("msg", msg);
+
+			return "redirect:mypage";
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			model.addAttribute("errorMsg", "비밀번호 수정 과정에서 오류발생");
+			return "common/errorPage";
+		}
+	}
+
+	// 회원 탈퇴 페이지 이동
+	@RequestMapping("secession")
+	public String secession(Model model, Member member, RedirectAttributes rdAttr) {
+		Member loginMember = (Member) model.getAttribute("loginMember");
+
+		String memberPwd = member.getMemberPwd();
+		loginMember.setMemberPwd(memberPwd);
+
+		try {
+			int result = memberService.deleteMember(loginMember);
+
+			String msg = null;
+
+			if (result > 0) {
+				msg = "탈퇴성공";
+				model.addAttribute("member", loginMember);
+			} else if (result == 0) {
+				msg = "탈퇴실패";
+			} else {
+				msg = "비밀번호 불일치";
+			}
+
+			rdAttr.addFlashAttribute("msg", msg);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			model.addAttribute("errorMsg", "비밀번호 오류 발생");
+			return "common/errorPage";
+		}
+
+		return "member/secession";
+	}
 
 }
